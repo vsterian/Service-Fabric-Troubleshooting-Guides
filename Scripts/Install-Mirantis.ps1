@@ -262,7 +262,9 @@ function Main() {
             -checkError $false
 
         # Set default isolation mode after installing Docker
-        Set-DefaultIsolationMode
+        if ($hypervIsolation) {
+            Set-DefaultIsolationMode
+        }
         
         $error.Clear()
         $finalVersion = Get-InstalledDockerVersion
