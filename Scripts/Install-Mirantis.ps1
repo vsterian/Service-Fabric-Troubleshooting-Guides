@@ -160,6 +160,7 @@ function Set-DefaultIsolationMode {
     $daemonConfigFile = 'C:\ProgramData\Docker\config\daemon.json'
 
     if (!(Test-Path $daemonConfigFile)) {
+        $null = New-Item -ItemType File -Path $daemonConfigFile -Force
         $daemonConfig = New-Object PSObject
         $daemonConfig | Add-Member -Type NoteProperty -Name 'exec-opts' -Value @("isolation=hyperv")
         $daemonConfig | ConvertTo-Json | Set-Content $daemonConfigFile
@@ -169,6 +170,7 @@ function Set-DefaultIsolationMode {
         $daemonConfig | ConvertTo-Json | Set-Content $daemonConfigFile
     }
 }
+
 
 function Main() {
 
