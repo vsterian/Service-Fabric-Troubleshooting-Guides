@@ -155,6 +155,21 @@ $global:downloadUrl = $mirantisRepo
 $global:restart = !$noRestart
 $global:result = $true
 
+
+function Set-DefaultIsolationMode {
+    $daemonConfigFile = 'C:\ProgramData\Docker\config\daemon.json'
+
+    if (!(Test-Path $daemonConfigFile)) {
+        $daemonConfig = New-Object PSObject
+        $daemonConfig | Add-Member -Type NoteProperty -Name 'exec-opts' -Value @("isolation=hyperv")
+        $daemonConfig | ConvertTo-Json | Set-Content $daemonConfigFile
+    } else {
+        $daemonConfig = Get-Content $daemonConfigFile | ConvertFrom-Json
+        $daemonConfig.'exec-opts' = @("isolation=hyperv")
+        $daemonConfig | ConvertTo-Json | Set-Content $daemonConfigFile
+    }
+}
+
 function Main() {
 
     $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
@@ -245,6 +260,9 @@ function Main() {
         $scriptResult = Invoke-Script -script $installFile `
             -argumentsTable $dockerInstallArgs `
             -checkError $false
+
+        # Set default isolation mode after installing Docker
+        Set-DefaultIsolationMode
         
         $error.Clear()
         $finalVersion = Get-InstalledDockerVersion
@@ -252,6 +270,8 @@ function Main() {
             Write-Host "setting `$global:result to false: finalversion:$finalVersion nullversion:$nullversion"
             $global:result = $false
         }
+
+
 
         Write-Host "Install result:$($scriptResult | Format-List * | Out-String)"
         Write-Host "Global result:$global:result"
